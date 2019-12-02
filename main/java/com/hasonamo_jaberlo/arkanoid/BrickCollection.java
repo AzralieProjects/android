@@ -1,19 +1,46 @@
 package com.hasonamo_jaberlo.arkanoid;
 
-public class BrickCollection     {
+public class BrickCollection {
 
-    public int[] getCollection_arr() {
+    public Brick[][] getCollection_arr() {
         return collection_arr;
     }
 
-    public void setCollection_arr(int[] collection_arr) {
+    public void setCollection_arr(Brick[][] collection_arr) {
         this.collection_arr = collection_arr;
     }
 
-    private int collection_arr[];
+    public int getCol() {
+        return col;
+    }
+
+    public void setCol(int col) {
+        this.col = col;
+    }
+
+    public int getRow() {
+        return row;
+    }
+
+    public void setRow(int row) {
+        this.row = row;
+    }
+
+    public Brick getBrick(Brick b [][],int row,int col) {
+        return b[row][col];
+    }
+
+    public void setBrick(Brick b [][],int row,int col) {
+        this.brick = brick;
+    }
+
+    private Brick collection_arr[][];
     private int col;
+    private int row;
     private Brick brick;
-private Brick[][] colection;
+
+
+    private Brick[][] colection;
 
     public Brick[][] getColection() {
 
@@ -22,13 +49,6 @@ private Brick[][] colection;
 
     public void setColection(Brick[][] colection) {
 
-
-
-    }
-    public BrickCollection(int row,int col){
-       for(int i =0;i<col;i++){
-           this.collection_arr[i]=row;
-       }
 
     }
 }

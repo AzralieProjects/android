@@ -20,26 +20,32 @@ public class GameView extends View {
     private float Paddle_x;
     private BrickCollection brickCollection;
     private Paint ball_pen, brick_pen, paddle_pen;
-    private float xpaddle;
+//    private float xpaddle;
     private int canvasW, canvasH;
     int Brick_Row = 5;
     int Brick_Col = 4;
     private int startTop;
     int psteps, pleft, pright;
     int ball_speed =15;
+    float ball_speed_x=15;
+    float ball_speed_y=-15;
     private int limit_arr[];
     Boolean startgame = false;
+    Boolean hit_brick=false;
+    Boolean ball_hit_paddle=false;
     int row_limet [];
     int first_move=0;
     public GameView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         ball = new Ball();
         paddle=new Paddle();
+        brick=new Brick();
+
 //        brickCollection=new BrickCollection(Brick_Row,Brick_Col);
 //
 //        this.limit_arr=brickCollection.getCollection_arr();
         this.limit_arr=new int[Brick_Col];
-        Arrays.fill(this.limit_arr,Brick_Row);
+     Arrays.fill(this.limit_arr,Brick_Row);
 
         ball_pen = new Paint();
 
@@ -58,7 +64,7 @@ public class GameView extends View {
         paddle_pen.setStyle(Paint.Style.FILL);
         paddle_pen.setStrokeWidth(20);
 /////////////////////////////
-
+//        init_arr(this.limit_arr,Brick_Row,Brick_Col);
 
     }
 
@@ -74,8 +80,8 @@ public class GameView extends View {
             move_ball();
        postInvalidate();
                     check_boundres();
-
-
+                    check_ball_inter_paddle();
+            check_ball_intersect_Brick();
             first_move=1;
 
         }
@@ -83,10 +89,9 @@ public class GameView extends View {
 //        new Thread(new Runnable() {
 //            @Override
 //            public void run() {
-//                while (startgame == true) {
-//                    move_ball();
-//                    postInvalidate();
-//                }
+//                    check_ball_intersect_Brick();
+//
+//
 //            }
 //        }).start();
 
@@ -99,31 +104,66 @@ public class GameView extends View {
 //                }
 //            }
 //        }).start();
-
+    }
+    private void check_ball_inter_paddle(){
+        if((this.ball.getYball()+this.ball.getRadios())>(canvasH-5)){
+            if(this.ball.getXball()>this.paddle.getPaddle_left()&&this.ball.getXball()<this.paddle.getPaddle_right())
+            this.ball_hit_paddle=true;
+        }
     }
     private void check_boundres(){
-        if(ball.getXball()-ball.getRadios()<=0||ball.getYball()-ball.getRadios()<=0||ball.getXball()+ball.getRadios()>=this.canvasW||ball.getYball()+ball.getRadios()>=this.canvasH ){
+        if(ball.getYball()-ball.getRadios()<=0 ){
+            Log.d("MULTIPLE", "we change here ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
             ball_speed=ball_speed*-1;
+//            this.ball_speed_x*=-1;
+            this.ball_speed_y*=-1;
         }
-
-
+        if(ball.getXball()-ball.getRadios()<=0||ball.getXball()+ball.getRadios()>=this.canvasW){
+            this.ball_speed_x*=-1;
+        }
     }
-    private void move_paddle() {
+//    public float getAngle(Ball target) {
+//        float angle = (float) Math.toDegrees(Math.atan2(target.getYball(), target.getXball()));
+//
+//        Log.d("MULTIPLE", "degree iis =" + angle );
+//
+//        if(angle < 0){
+//            angle += 360;
+//        }
+//
+//        return angle;
+//    }
 
-    }
+
 
     private void move_ball() {
-        if(first_move==1) {
 
-            this.ball.setXball(this.ball.getXball() );
-        }else{
-            this.ball.setXball(this.ball.getXball() - ball_speed);
+        if (this.ball_hit_paddle == true) {
+
+            this.ball_hit_paddle = false;
+            this.ball_speed_x=(this.ball.getXball()-this.paddle.getX_c_paddle())/10;
+            this.ball_speed_y*=-1;
+            this.ball.setYball(canvasH-60);
+//            this.ball_speed_y=-10*Math.abs((float) Math.sin(distence));
+            Log.d("MULTIPLE", "speed bal y is "+this.ball_speed_y+"paddele center  is sss "+this.ball_speed_x);
+
+//            this.ball.setXball(this.ball.getXball());
+
+
+        } else {
+            if (first_move == 1) {
+
+                this.ball.setXball(this.ball.getXball());
+            }
+
+            this.ball.setYball(this.ball.getYball() + ball_speed_y);
+            this.ball.setXball((this.ball.getXball() + ball_speed_x));
+
+
         }
-        this.ball.setYball(this.ball.getYball() - ball_speed);
+
+
     }
-
-
-
     private void draw_ball(Canvas canvas) {
         canvas.drawCircle(ball.getXball(),ball.getYball(),ball.getRadios(),ball_pen);
 
@@ -136,7 +176,9 @@ public class GameView extends View {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                this.paddle.setXcPaddle(event.getX());
+                this.paddle.setX_c_paddle(event.getX());
+                this.paddle.setPaddle_left((this.paddle.getX_c_paddle()-psteps/2));
+                this.paddle.setPaddle_right((this.paddle.getX_c_paddle()+psteps/2));
                 float y =event.getY();
 
         }
@@ -147,15 +189,24 @@ public class GameView extends View {
     }
 
     private void draw_paddle(Canvas canvas) {
-        pleft=  (int)(this.paddle.getXcPaddle());
-        pright=pleft+psteps;
+
+//        this.paddle.setX_c_paddle();
+//        pright=pleft+psteps;
 //        xpaddle=onTouchEvent(MotionEvent event);
 
-        canvas.drawRect(pleft,canvasH-50, pright, canvasH -10, paddle_pen);
+        canvas.drawRect(this.paddle.getPaddle_left(),canvasH-50, this.paddle.getPaddle_right(), canvasH -10, paddle_pen);
 
     }
 
-    private void  draw_Bricks(Canvas canvas){
+void init_arr(int []arr,int row,int col){
+        for(int i=0;i<col;i++){
+            arr[col]=row;
+    }
+
+
+}
+
+        private void  draw_Bricks(Canvas canvas){
         int blimit=canvasH/3;
         int temptop=startTop;
 
@@ -166,6 +217,7 @@ public class GameView extends View {
         int right=left+leftsteps;
         int pad=20;
 //           int line=0;
+
         for(int col=0;col<Brick_Col;col++) {
 
             int line=0;
@@ -174,6 +226,7 @@ public class GameView extends View {
                 canvas.drawRect(left, temptop, right, temptop + steps, brick_pen);
                 temptop += steps + 20;
 
+
             }
             line++;
             left=(right+5);
@@ -181,9 +234,24 @@ public class GameView extends View {
             temptop=startTop;
 //             tempbottom=temptop+steps;
 
+        } 
+    }
+    private void check_ball_intersect_Brick() {
+        int steps = canvasH / 18;
+        for (int col = 0; col < this.Brick_Col; col++) {
+
+            int bottm_limit_temp = startTop + this.limit_arr[col] * steps + ((limit_arr[col] - 1) * (20));
+            if (this.ball.getYball() + this.ball.getRadios() < (bottm_limit_temp)) {
+                this.limit_arr[col]=this.limit_arr[col]-1;
+                this.hit_brick=true;
+                this.ball_speed_y*=-1;
+                postInvalidate();
+                break;
+
+            }
+
         }
     }
-
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
@@ -192,12 +260,15 @@ public class GameView extends View {
         canvasH = h;
         Log.d(getClass().getName(), String.format("value = %d", w));
         startTop=canvasH/8;
-        psteps=canvasW/4;
+        psteps=canvasW/5;
         Paddle_x=canvasW/3;
-        this.paddle.setXcPaddle(Paddle_x);
 
-        this.ball.setXball(Paddle_x+(psteps/2));
+        this.ball.setXball(canvasW/2);
         this.ball.setYball(canvasH-90);
         this.ball.setRadios(30);
+        this.paddle.setX_c_paddle(canvasW/2);
+        this.paddle.setY_c_paddle(canvasH-25);
+//        this.paddle.setXcPaddle(this.paddle.getX_c_paddle()-psteps/2);
+
     }
 }
